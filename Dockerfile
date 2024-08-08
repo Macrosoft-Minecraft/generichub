@@ -1,5 +1,5 @@
 # base image 
-FROM node:16
+FROM node:20
 
 # setup environment variable  
 ENV APPHOME=/home/app
