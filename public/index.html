@@ -1,0 +1,133 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Socket.IO Sala com Senha</title>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
+  <script src="/socket.io/socket.io.js"></script>
+  <script>
+    document.addEventListener("DOMContentLoaded", () => {
+      const socket = io();
+
+      // Função para adicionar logs
+      const addLog = (message) => {
+        const log = document.getElementById('log');
+        const logEntry = document.createElement('div');
+        logEntry.textContent = message;
+        log.appendChild(logEntry);
+        log.scrollTop = log.scrollHeight;
+      };
+
+      // Eventos de feedback
+      socket.on('entrar-sala', (data) => {
+        addLog(`Resposta entrar-sala: ${JSON.stringify(data)}`);
+      });
+
+      socket.on('criar-sala', (data) => {
+        addLog(`Resposta criar-sala: ${JSON.stringify(data)}`);
+      });
+
+      socket.on('não-autorizado', (data) => {
+        addLog(`Resposta não-autorizado: ${JSON.stringify(data)}`);
+      });
+
+      socket.onAny((event, ...args) => {
+        addLog(`Event ${event}: ${args}`);
+      });
+
+      // Formulário para criar sala
+      document.getElementById('criar-sala-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const nomeSala = document.getElementById('nome-sala').value;
+        const senhaSala = document.getElementById('senha-sala').value;
+        const eventos = document.getElementById('eventos').value.split(',');
+        socket.emit('criar-sala', { nome: nomeSala, token: senhaSala, eventos });
+      });
+
+      // Formulário para entrar em sala
+      document.getElementById('entrar-sala-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const nomeSala = document.getElementById('entrar-nome-sala').value;
+        const senhaSala = document.getElementById('entrar-senha-sala').value;
+        socket.emit('entrar-sala', { sala: nomeSala, token: senhaSala });
+      });
+
+      // Formulário para enviar eventos
+      document.getElementById('enviar-evento-form').addEventListener('submit', (event) => {
+        event.preventDefault();
+        const nomeEvento = document.getElementById('nome-evento').value;
+        const dadosEvento = document.getElementById('dados-evento').value;
+        socket.emit(nomeEvento, dadosEvento);
+      });
+    });
+  </script>
+</head>
+<body>
+  <div class="container mt-5">
+    <h2>Socket.IO Sala com Senha</h2>
+
+    <div class="card">
+      <div class="card-body">
+        <h5 class="card-title">Criar Sala</h5>
+        <form id="criar-sala-form">
+          <div class="form-group">
+            <label for="nome-sala">Nome da Sala</label>
+            <input type="text" class="form-control" id="nome-sala" required>
+          </div>
+          <div class="form-group">
+            <label for="senha-sala">Senha da Sala</label>
+            <input type="password" class="form-control" id="senha-sala" required>
+          </div>
+          <div class="form-group">
+            <label for="eventos">Eventos Permitidos (separados por vírgula)</label>
+            <input type="text" class="form-control" id="eventos" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Criar Sala</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Entrar na Sala</h5>
+        <form id="entrar-sala-form">
+          <div class="form-group">
+            <label for="entrar-nome-sala">Nome da Sala</label>
+            <input type="text" class="form-control" id="entrar-nome-sala" required>
+          </div>
+          <div class="form-group">
+            <label for="entrar-senha-sala">Senha da Sala</label>
+            <input type="password" class="form-control" id="entrar-senha-sala" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Entrar na Sala</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Enviar Evento</h5>
+        <form id="enviar-evento-form">
+          <div class="form-group">
+            <label for="nome-evento">Nome do Evento</label>
+            <input type="text" class="form-control" id="nome-evento" required>
+          </div>
+          <div class="form-group">
+            <label for="dados-evento">Dados do Evento</label>
+            <input type="text" class="form-control" id="dados-evento" required>
+          </div>
+          <button type="submit" class="btn btn-primary">Enviar Evento</button>
+        </form>
+      </div>
+    </div>
+
+    <div class="card mt-3">
+      <div class="card-body">
+        <h5 class="card-title">Log</h5>
+        <div id="log" class="border p-3" style="height: 200px; overflow-y: scroll;"></div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
