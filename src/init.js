@@ -2,6 +2,7 @@ const express = require('express');
 const http = require('http');
 const { Server } = require('socket.io');
 const funcs = require('./funcs');
+const util = require('./util')
 
 const app = express();
 
@@ -21,8 +22,8 @@ io.on('connection', (socket) => {
 
   socket.emit('bem-vindo', { 
     sucesso: true,
-    mensagem: 'Bem vindo ao hub websocket da Macrosoft v1',
-    eventos: funcs.reservedEvents 
+    mensagem: util.TUTORIAL,
+    eventos: funcs.reservedEvents
   });
 
   // Tratamento para o evento "entrar-sala"
@@ -30,6 +31,15 @@ io.on('connection', (socket) => {
 
   // Tratamento para o evento "criar-sala"
   socket.on('criar-sala', ({ nome, token, eventos }) => funcs.criarSala(socket, rooms, { nome, token, eventos }));
+
+  // Tratamento para o evento "ping"
+  socket.on('ping', () => {
+    console.log(`Cliente ${socket.id} enviou um ping`);
+    socket.emit('pong', {
+      mensagem: 'pong',
+      salas: Object.keys(socket.rooms).filter(r => r !== socket.id)
+    });
+  });
 
   // Repassar eventos apenas se forem permitidos
   socket.onAny((event, ...args) => {

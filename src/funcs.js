@@ -56,7 +56,7 @@ function criarSala(socket, rooms, { nome, token, eventos }) {
 function entrarSala(socket, rooms, { sala, token }) {
   console.log(`Cliente ${socket.id} está tentando entrar na sala ${sala}`);
 
-  console.log(rooms[sala], sala, token, rooms)
+  //console.log(rooms[sala], sala, token, rooms)
   // Verifica se a sala existe
   if (rooms[sala]) {
 
