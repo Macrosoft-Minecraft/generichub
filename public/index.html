@@ -1,133 +1,281 @@
 <!DOCTYPE html>
-<html lang="en">
+<html lang="pt-br">
+
 <head>
-  <meta charset="UTF-8">
-  <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Socket.IO Sala com Senha</title>
-  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css">
-  <script src="/socket.io/socket.io.js"></script>
-  <script>
-    document.addEventListener("DOMContentLoaded", () => {
-      const socket = io();
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Socket.IO Client - Macrosoft</title>
+    <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.0/dist/css/bootstrap.min.css" rel="stylesheet">
+    <style>
+        body {
+            background-color: #f8f9fa;
+        }
 
-      // Função para adicionar logs
-      const addLog = (message) => {
-        const log = document.getElementById('log');
-        const logEntry = document.createElement('div');
-        logEntry.textContent = message;
-        log.appendChild(logEntry);
-        log.scrollTop = log.scrollHeight;
-      };
+        .card-header {
+            background-color: #343a40;
+            color: #fff;
+        }
 
-      // Eventos de feedback
-      socket.on('entrar-sala', (data) => {
-        addLog(`Resposta entrar-sala: ${JSON.stringify(data)}`);
-      });
+        .card-body {
+            padding: 1.5rem;
+        }
 
-      socket.on('criar-sala', (data) => {
-        addLog(`Resposta criar-sala: ${JSON.stringify(data)}`);
-      });
+        .form-control:focus {
+            box-shadow: none;
+        }
 
-      socket.on('não-autorizado', (data) => {
-        addLog(`Resposta não-autorizado: ${JSON.stringify(data)}`);
-      });
+        .btn-custom {
+            background-color: #343a40;
+            color: #fff;
+        }
 
-      socket.onAny((event, ...args) => {
-        addLog(`Event ${event}: ${args}`);
-      });
+        .log-area {
+            height: 300px;
+            overflow-y: auto;
+            background-color: #212529;
+            color: #fff;
+            padding: 1rem;
+            border-radius: 0.25rem;
+            font-family: monospace;
+            font-size: 0.9rem;
+        }
 
-      // Formulário para criar sala
-      document.getElementById('criar-sala-form').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const nomeSala = document.getElementById('nome-sala').value;
-        const senhaSala = document.getElementById('senha-sala').value;
-        const eventos = document.getElementById('eventos').value.split(',');
-        socket.emit('criar-sala', { nome: nomeSala, token: senhaSala, eventos });
-      });
+        .log-area p {
+            margin: 0;
+        }
 
-      // Formulário para entrar em sala
-      document.getElementById('entrar-sala-form').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const nomeSala = document.getElementById('entrar-nome-sala').value;
-        const senhaSala = document.getElementById('entrar-senha-sala').value;
-        socket.emit('entrar-sala', { sala: nomeSala, token: senhaSala });
-      });
-
-      // Formulário para enviar eventos
-      document.getElementById('enviar-evento-form').addEventListener('submit', (event) => {
-        event.preventDefault();
-        const nomeEvento = document.getElementById('nome-evento').value;
-        const dadosEvento = document.getElementById('dados-evento').value;
-        socket.emit(nomeEvento, dadosEvento);
-      });
-    });
-  </script>
+        .log-area span {
+            color: #61dafb;
+        }
+    </style>
 </head>
+
 <body>
-  <div class="container mt-5">
-    <h2>Socket.IO Sala com Senha</h2>
+    <div class="container mt-5">
+        <div class="row justify-content-center">
+            <div class="col-lg-8">
+                <div class="card">
+                    <div class="card-header text-center">
+                        <h4>Socket.IO Client - Macrosoft</h4>
+                    </div>
+                    <div class="card-body">
+                        <form id="connection-form">
+                            <div class="mb-3">
+                                <label for="server-url" class="form-label">URL do Servidor</label>
+                                <input type="text" class="form-control" id="server-url" placeholder="https://socket.macrosoft.website:80">
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100 mb-3">Conectar ao Servidor</button>
+                        </form>
+                        
+                        <form id="create-room-form" class="mb-4">
+                            <h5>Criar Sala</h5>
+                            <div class="mb-3">
+                                <label for="room-name" class="form-label">Nome da Sala</label>
+                                <input type="text" class="form-control" id="room-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="room-password" class="form-label">Senha da Sala</label>
+                                <input type="password" class="form-control" id="room-password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="room-events" class="form-label">Eventos Permitidos (separados por vírgula)</label>
+                                <input type="text" class="form-control" id="room-events" placeholder="eventoxpto, eventofoo, eventobaz">
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">Criar Sala</button>
+                        </form>
 
-    <div class="card">
-      <div class="card-body">
-        <h5 class="card-title">Criar Sala</h5>
-        <form id="criar-sala-form">
-          <div class="form-group">
-            <label for="nome-sala">Nome da Sala</label>
-            <input type="text" class="form-control" id="nome-sala" required>
-          </div>
-          <div class="form-group">
-            <label for="senha-sala">Senha da Sala</label>
-            <input type="password" class="form-control" id="senha-sala" required>
-          </div>
-          <div class="form-group">
-            <label for="eventos">Eventos Permitidos (separados por vírgula)</label>
-            <input type="text" class="form-control" id="eventos" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Criar Sala</button>
-        </form>
-      </div>
+                        <form id="join-room-form" class="mb-4">
+                            <h5>Entrar em Sala</h5>
+                            <div class="mb-3">
+                                <label for="join-room-name" class="form-label">Nome da Sala</label>
+                                <input type="text" class="form-control" id="join-room-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="join-room-password" class="form-label">Senha da Sala</label>
+                                <input type="password" class="form-control" id="join-room-password">
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">Entrar na Sala</button>
+                        </form>
+
+                        <div class="mb-4">
+                            <button id="list-rooms-btn" class="btn btn-custom w-100">Listar Salas</button>
+                        </div>
+
+                        <form id="event-actions-form" class="mb-4">
+                            <h5>Gerenciar Eventos da Sala</h5>
+                            <div class="mb-3">
+                                <label for="manage-room-name" class="form-label">Nome da Sala</label>
+                                <input type="text" class="form-control" id="manage-room-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="manage-room-password" class="form-label">Senha da Sala</label>
+                                <input type="password" class="form-control" id="manage-room-password">
+                            </div>
+                            <div class="mb-3">
+                                <label for="manage-event-name" class="form-label">Nome do Evento</label>
+                                <input type="text" class="form-control" id="manage-event-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="event-action" class="form-label">Ação</label>
+                                <select class="form-control" id="event-action">
+                                    <option value="add">Adicionar Evento</option>
+                                    <option value="remove">Remover Evento</option>
+                                </select>
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">Executar Ação</button>
+                        </form>
+
+                        <form id="remove-room-form" class="mb-4">
+                            <h5>Remover Sala</h5>
+                            <div class="mb-3">
+                                <label for="remove-room-name" class="form-label">Nome da Sala</label>
+                                <input type="text" class="form-control" id="remove-room-name">
+                            </div>
+                            <div class="mb-3">
+                                <label for="remove-room-password" class="form-label">Senha da Sala</label>
+                                <input type="password" class="form-control" id="remove-room-password">
+                            </div>
+                            <button type="submit" class="btn btn-custom w-100">Remover Sala</button>
+                        </form>
+
+                        <!-- Formulário para enviar eventos -->
+                        <div class="card mt-3">
+                          <div class="card-header">
+                              <h5>Enviar Evento</h5>
+                          </div>
+                          <div class="card-body">
+                              <form id="send-event-form">
+                                  <div class="mb-3">
+                                      <label for="send-event-name" class="form-label">Nome do Evento</label>
+                                      <input type="text" class="form-control" id="send-event-name" placeholder="Digite o nome do evento" required>
+                                  </div>
+                                  <div class="mb-3">
+                                      <label for="send-event-data" class="form-label">Dados do Evento (JSON)</label>
+                                      <textarea class="form-control" id="send-event-data" rows="3" placeholder='{"key": "value"}' required></textarea>
+                                  </div>
+                                  <button type="submit" class="btn btn-primary">Enviar Evento</button>
+                              </form>
+                          </div>
+                        </div>
+
+                        <div class="log-area" id="log"></div>
+                    </div>
+                </div>
+            </div>
+        </div>
     </div>
 
-    <div class="card mt-3">
-      <div class="card-body">
-        <h5 class="card-title">Entrar na Sala</h5>
-        <form id="entrar-sala-form">
-          <div class="form-group">
-            <label for="entrar-nome-sala">Nome da Sala</label>
-            <input type="text" class="form-control" id="entrar-nome-sala" required>
-          </div>
-          <div class="form-group">
-            <label for="entrar-senha-sala">Senha da Sala</label>
-            <input type="password" class="form-control" id="entrar-senha-sala" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Entrar na Sala</button>
-        </form>
-      </div>
-    </div>
+    <script src="https://cdn.socket.io/4.0.1/socket.io.min.js"></script>
+    <script>
+        let socket;
+        const logArea = document.getElementById('log');
 
-    <div class="card mt-3">
-      <div class="card-body">
-        <h5 class="card-title">Enviar Evento</h5>
-        <form id="enviar-evento-form">
-          <div class="form-group">
-            <label for="nome-evento">Nome do Evento</label>
-            <input type="text" class="form-control" id="nome-evento" required>
-          </div>
-          <div class="form-group">
-            <label for="dados-evento">Dados do Evento</label>
-            <input type="text" class="form-control" id="dados-evento" required>
-          </div>
-          <button type="submit" class="btn btn-primary">Enviar Evento</button>
-        </form>
-      </div>
-    </div>
+        function log(message) {
+            const p = document.createElement('p');
+            p.textContent = message;
+            logArea.appendChild(p);
+            logArea.scrollTop = logArea.scrollHeight;
+        }
 
-    <div class="card mt-3">
-      <div class="card-body">
-        <h5 class="card-title">Log</h5>
-        <div id="log" class="border p-3" style="height: 200px; overflow-y: scroll;"></div>
-      </div>
-    </div>
-  </div>
+        const reservedEvents = [
+            'entrar-sala', 
+            'criar-sala', 
+            'bem-vindo', 
+            'não-autorizado',
+            'adicionar-evento',
+            'remover-evento',
+            'remover-sala',
+            'listar-salas',
+            'ping',
+            'pong',
+            'connect', 
+            'connect_error', 
+            'disconnect', 
+            'disconnecting', 
+            'newListener', 
+            'removeListener'
+        ];
+
+        document.getElementById('connection-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const serverUrl = document.getElementById('server-url').value;
+            socket = io(serverUrl);
+
+            socket.on('connect', () => log('Conectado ao servidor'));
+            socket.on('bem-vindo', (data) => log(`Bem-vindo: ${JSON.stringify(data)}`));
+            socket.on('pong', (data) => log(`Pong recebido: ${JSON.stringify(data)}`));
+            socket.on('não-autorizado', (data) => log(`Não autorizado: ${JSON.stringify(data)}`));
+            socket.on('criar-sala', (data) => log(`Resposta de criar sala: ${JSON.stringify(data)}`));
+            socket.on('entrar-sala', (data) => log(`Resposta de entrar sala: ${JSON.stringify(data)}`));
+            socket.on('listar-salas', (data) => log(`Salas listadas: ${JSON.stringify(data)}`));
+            socket.on('adicionar-evento', (data) => log(`Adicionar evento: ${JSON.stringify(data)}`));
+            socket.on('remover-evento', (data) => log(`Remover evento: ${JSON.stringify(data)}`));
+            socket.on('remover-sala', (data) => log(`Remover sala: ${JSON.stringify(data)}`));
+
+                // Escuta todos os eventos recebidos na sala, ignorando os eventos padrão
+            socket.onAny((event, data) => {
+                if (!reservedEvents.includes(event)) {
+                    log(JSON.stringify({ event, data }));
+                }
+            });
+
+        });
+
+        document.getElementById('create-room-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roomName = document.getElementById('room-name').value;
+            const roomPassword = document.getElementById('room-password').value;
+            const roomEvents = document.getElementById('room-events').value.split(',').map(e => e.trim());
+
+            socket.emit('criar-sala', { nome: roomName, token: roomPassword, eventos: roomEvents });
+        });
+
+        document.getElementById('join-room-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roomName = document.getElementById('join-room-name').value;
+            const roomPassword = document.getElementById('join-room-password').value;
+
+            socket.emit('entrar-sala', { sala: roomName, token: roomPassword });
+        });
+
+        document.getElementById('list-rooms-btn').addEventListener('click', () => {
+            socket.emit('listar-salas');
+        });
+
+        document.getElementById('event-actions-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roomName = document.getElementById('manage-room-name').value;
+            const roomPassword = document.getElementById('manage-room-password').value;
+            const eventName = document.getElementById('manage-event-name').value;
+            const action = document.getElementById('event-action').value;
+
+            if (action === 'add') {
+                socket.emit('adicionar-evento', { sala: roomName, evento: eventName, token: roomPassword });
+            } else if (action === 'remove') {
+                socket.emit('remover-evento', { sala: roomName, evento: eventName, token: roomPassword });
+            }
+        });
+
+        document.getElementById('remove-room-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const roomName = document.getElementById('remove-room-name').value;
+            const roomPassword = document.getElementById('remove-room-password').value;
+
+            socket.emit('remover-sala', { nome: roomName, token: roomPassword });
+        });
+
+        document.getElementById('send-event-form').addEventListener('submit', (e) => {
+            e.preventDefault();
+            const eventName = document.getElementById('send-event-name').value;
+            const eventData = document.getElementById('send-event-data').value;
+
+            socket.emit(eventName, eventData);
+
+            // Log do envio de evento
+           log(`Evento '${eventName}' enviado com dados: ${JSON.stringify(eventData)}`);
+        });
+
+    </script>
 </body>
+
 </html>

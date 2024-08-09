@@ -27,15 +27,20 @@ io.on('connection', (socket) => {
   });
 
   // Tratamento para o evento "entrar-sala"
-  socket.on('entrar-sala', ({ sala, token }) => funcs.entrarSala(socket, rooms, { sala, token }));
+  socket.on(funcs.EVENTO.entrarSala, ({ sala, token }) => funcs.entrarSala(socket, rooms, { sala, token }));
 
   // Tratamento para o evento "criar-sala"
-  socket.on('criar-sala', ({ nome, token, eventos }) => funcs.criarSala(socket, rooms, { nome, token, eventos }));
+  socket.on(funcs.EVENTO.criarSala, ({ nome, token, eventos }) => funcs.criarSala(socket, rooms, { nome, token, eventos }));
+
+  socket.on(funcs.EVENTO.adicionarEvento, ({ sala, evento, token }) => funcs.adicionarEvento(socket, rooms, { sala, evento, token }));
+  socket.on(funcs.EVENTO.removerEvento, ({ sala, evento, token }) => funcs.removerEvento(socket, rooms, { sala, evento, token }));
+  socket.on(funcs.EVENTO.removerSala, ({ nome, token }) => funcs.removerSala(socket, rooms, { nome, token }));
+  socket.on(funcs.EVENTO.listarSalas, () => funcs.listarSalas(socket, rooms, io));
 
   // Tratamento para o evento "ping"
-  socket.on('ping', () => {
+  socket.on(funcs.EVENTO.ping, () => {
     console.log(`Cliente ${socket.id} enviou um ping`);
-    socket.emit('pong', {
+    socket.emit(funcs.EVENTO.pong, {
       mensagem: 'pong',
       salas: Object.keys(socket.rooms).filter(r => r !== socket.id)
     });
@@ -63,12 +68,12 @@ io.on('connection', (socket) => {
       } else {
         // Informa ao cliente que o evento não é permitido na sala
         console.log(`Evento ${event} não é permitido na sala ${sala}`);
-        socket.emit('não-autorizado', { mensagem: `O evento ${event} não é permitido na sala ${sala}.` });
+        socket.emit(funcs.EVENTO.naoAutorizado, { mensagem: `O evento ${event} não é permitido na sala ${sala}.` });
       }
     } else {
       // Informa ao cliente que ele não está em nenhuma sala ou está em múltiplas salas
       console.log(`Cliente ${socket.id} não está em nenhuma sala ou está em múltiplas salas`);
-      socket.emit('não-autorizado', { mensagem: `Você não está em nenhuma sala ou está em múltiplas salas.` });
+      socket.emit(funcs.EVENTO.naoAutorizado, { mensagem: `Você não está em nenhuma sala ou está em múltiplas salas.` });
     }
   });
 
