@@ -12,6 +12,31 @@ const port = process.env.PORT ? process.env.PORT : 80;
 const server = http.createServer(app);
 const io = new Server(server);
 
+// Middleware para converter strings em objetos JSON
+io.use((socket, next) => {
+  // Intercepta todos os eventos enviados para o servidor
+  socket.onAny((event, data, callback) => {
+      // Verifica se o dado recebido é uma string
+      if (typeof data === 'string') {
+          try {
+              // Tenta converter a string para um objeto JSON
+              const parsedData = JSON.parse(data);
+              // Repassa o evento com o dado convertido para o callback original
+              socket.emit(event, parsedData, callback);
+          } catch (err) {
+              // Se falhar a conversão, passa o dado original e loga o erro
+              //console.error(`Erro ao tentar converter string para JSON: ${err.message}`);
+              socket.emit(event, data, callback);
+          }
+      } else {
+          // Se não for string, repassa o dado como está
+          socket.emit(event, data, callback);
+      }
+  });
+  next();
+});
+
+
 const rooms = {};  // Armazena informações sobre salas e seus eventos permitidos
 
 app.use(express.static('public'));
