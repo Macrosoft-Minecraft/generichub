@@ -12,31 +12,6 @@ const port = process.env.PORT ? process.env.PORT : 80;
 const server = http.createServer(app);
 const io = new Server(server);
 
-// Middleware para converter strings em objetos JSON
-io.use((socket, next) => {
-  // Intercepta todos os eventos enviados para o servidor
-  socket.onAny((event, data, callback) => {
-      // Verifica se o dado recebido é uma string
-      if (typeof data === 'string') {
-          try {
-              // Tenta converter a string para um objeto JSON
-              const parsedData = JSON.parse(data);
-              // Repassa o evento com o dado convertido para o callback original
-              socket.emit(event, parsedData, callback);
-          } catch (err) {
-              // Se falhar a conversão, passa o dado original e loga o erro
-              //console.error(`Erro ao tentar converter string para JSON: ${err.message}`);
-              socket.emit(event, data, callback);
-          }
-      } else {
-          // Se não for string, repassa o dado como está
-          socket.emit(event, data, callback);
-      }
-  });
-  next();
-});
-
-
 const rooms = {};  // Armazena informações sobre salas e seus eventos permitidos
 
 app.use(express.static('public'));
@@ -52,14 +27,14 @@ io.on('connection', (socket) => {
   });
 
   // Tratamento para o evento "entrar-sala"
-  socket.on(funcs.EVENTO.entrarSala, ({ sala, token }) => funcs.entrarSala(socket, rooms, { sala, token }));
+  socket.on(funcs.EVENTO.entrarSala, data => funcs.entrarSala(socket, rooms, funcs.objectify(data)));
 
   // Tratamento para o evento "criar-sala"
-  socket.on(funcs.EVENTO.criarSala, ({ nome, token, eventos }) => funcs.criarSala(socket, rooms, { nome, token, eventos }));
+  socket.on(funcs.EVENTO.criarSala, data => funcs.criarSala(socket, rooms, funcs.objectify(data)));
 
-  socket.on(funcs.EVENTO.adicionarEvento, ({ sala, evento, token }) => funcs.adicionarEvento(socket, rooms, { sala, evento, token }));
-  socket.on(funcs.EVENTO.removerEvento, ({ sala, evento, token }) => funcs.removerEvento(socket, rooms, { sala, evento, token }));
-  socket.on(funcs.EVENTO.removerSala, ({ nome, token }) => funcs.removerSala(socket, rooms, { nome, token }));
+  socket.on(funcs.EVENTO.adicionarEvento, data => funcs.adicionarEvento(socket, rooms, funcs.objectify(data)));
+  socket.on(funcs.EVENTO.removerEvento, data => funcs.removerEvento(socket, rooms, funcs.objectify(data)));
+  socket.on(funcs.EVENTO.removerSala, data => funcs.removerSala(socket, rooms, funcs.objectify(data)));
   socket.on(funcs.EVENTO.listarSalas, () => funcs.listarSalas(socket, rooms, io));
 
   // Tratamento para o evento "ping"

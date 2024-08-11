@@ -29,6 +29,19 @@ const isDefaultEvent = (event) => {
   return defaultEvents.includes(event);
 };
 
+// Middleware para converter strings em JSON
+function objectify(data) {
+  if (typeof data === 'string') {
+      try {
+          // Converte a string para um objeto JSON
+          data = JSON.parse(data);
+      } catch (err) {
+          //console.error(`Erro ao tentar converter string para JSON: ${err.message}`);
+      }
+  }
+  return data;
+}
+
 function criarSala(socket, rooms, { nome, token, eventos }) {
   console.log(`Cliente ${socket.id} está tentando criar a sala ${nome}`);
 
@@ -217,6 +230,7 @@ function removerEvento(socket, rooms, { sala, evento, token }){
 
 
 module.exports = {
+  objectify,
   entrarSala,
   criarSala,
   listarSalas,
